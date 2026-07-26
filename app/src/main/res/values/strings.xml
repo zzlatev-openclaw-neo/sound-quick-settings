@@ -11,4 +11,6 @@
 
     <string name="toast_text">Grant the app permission to use it</string>
     <string name="settings">Settings</string>
+    <string name="sound_mode_notification_channel">Sound mode changes</string>
+    <string name="sound_mode_notification_text">Changing the sound mode</string>
 </resources>

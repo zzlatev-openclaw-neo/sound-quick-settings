@@ -8,11 +8,14 @@ import android.graphics.drawable.Icon
 import android.media.AudioManager
 import android.service.quicksettings.Tile
 import android.service.quicksettings.TileService
+import androidx.core.content.ContextCompat
 import com.alftendev.simplesoundquicksettings.R
 import com.alftendev.simplesoundquicksettings.utils.ImageUtils.getSoundStateDrawable
 import com.alftendev.simplesoundquicksettings.utils.Utils
 
 class SoundTile : TileService() {
+
+    private var receiverRegistered = false
 
     private val broadcastReceiver: BroadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
@@ -64,31 +67,25 @@ class SoundTile : TileService() {
             return
         }
 
-        val audio = getSystemService(AUDIO_SERVICE) as AudioManager
-
-        audio.ringerMode = when (audio.ringerMode) {
-            AudioManager.RINGER_MODE_NORMAL -> AudioManager.RINGER_MODE_VIBRATE
-
-            AudioManager.RINGER_MODE_VIBRATE -> {
-                audio.ringerMode = AudioManager.RINGER_MODE_NORMAL
-                AudioManager.RINGER_MODE_SILENT
-            }
-
-            AudioManager.RINGER_MODE_SILENT -> AudioManager.RINGER_MODE_NORMAL
-
-            else -> {
-                return
-            }
-        }
-
-        updateSoundTile()
+        ContextCompat.startForegroundService(
+            this,
+            Intent(this, SoundModeChangeService::class.java)
+        )
     }
 
     override fun onStartListening() {
         super.onStartListening()
 
-        val filter = IntentFilter(AudioManager.RINGER_MODE_CHANGED_ACTION)
-        registerReceiver(broadcastReceiver, filter)
+        if (!receiverRegistered) {
+            val filter = IntentFilter(AudioManager.RINGER_MODE_CHANGED_ACTION)
+            ContextCompat.registerReceiver(
+                this,
+                broadcastReceiver,
+                filter,
+                ContextCompat.RECEIVER_NOT_EXPORTED
+            )
+            receiverRegistered = true
+        }
 
         updateSoundTile()
     }
@@ -96,10 +93,12 @@ class SoundTile : TileService() {
     override fun onStopListening() {
         super.onStopListening()
 
-        try {
-            unregisterReceiver(broadcastReceiver)
-        } catch (e: Exception) {
-            e.printStackTrace()
+        if (receiverRegistered) {
+            try {
+                unregisterReceiver(broadcastReceiver)
+            } finally {
+                receiverRegistered = false
+            }
         }
     }
 

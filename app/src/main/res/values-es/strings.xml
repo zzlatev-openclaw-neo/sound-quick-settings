@@ -9,4 +9,6 @@
 
     <string name="toast_text">Concede el permiso a la aplicación para poder usarla</string>
     <string name="settings">Ajustes</string>
+    <string name="sound_mode_notification_channel">Cambios del modo de sonido</string>
+    <string name="sound_mode_notification_text">Cambiando el modo de sonido</string>
 </resources>
